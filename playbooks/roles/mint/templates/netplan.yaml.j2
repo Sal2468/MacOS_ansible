@@ -1,0 +1,12 @@
+network:
+  version: 2
+  wifis:
+    wlp2s0:
+      renderer: NetworkManager
+      dhcp4: true
+      nameservers:
+        search: [dns.corp]
+        addresses: [123.251.11.250, 28.15.26.3, 9.9.9.9]
+      access-points:
+        "WiFi":
+          password: "wifiP@ssword123"

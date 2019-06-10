@@ -1,0 +1,8 @@
+- name: configure DNS
+  block:
+    - name: set search server
+      command: sudo networksetup -setsearchdomains ethernet dns.corp
+    - name: set DNS servers
+      command: sudo networksetup -setdnsservers ethernet 123.251.11.250 28.15.26.3 1.1.1.1
+  tags:
+    - dns

@@ -1,0 +1,62 @@
+- name: Add users
+  user:
+    name: "{{ item.name }}"
+    password: "{{ item.password | password_hash('sha512') }}"
+    shell: /bin/bash
+    state: present
+  with_items:
+    - { name: guest, password: guest }
+
+- name: add netplan
+  template: 
+    src: "netplan.yaml.j2"
+    dest: /etc/netplan/1-network-manager-all.yaml
+  
+# install Google chrome
+- name: Does the Google apt file exist?
+  command: test -f "/etc/apt/sources.list.d/google-chrome.list"
+  register: google_apt_exists
+  ignore_errors: True
+
+- name: Add Google Chrome key
+  shell: wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -
+  when: google_apt_exists.rc == 1
+
+- name: Add Google Chrome repo
+  copy: content="deb http://dl.google.com/linux/chrome/deb/ stable main" dest=/etc/apt/sources.list.d/google-chrome.list owner=root group=root mode=644
+  when: google_apt_exists.rc == 1
+
+- name: update repos
+  apt: update_cache=yes
+
+- name: install packages
+  apt: pkg="{{ item }}" state=present
+  with_items:
+    - terminator
+    - vim 
+    - google-chrome-stable
+    - resolvconf
+    - fish
+
+- name: start Network Manager
+  service: name=NetworkManager state=started enabled=yes
+
+- name: Resolv DNS
+  block:
+    - template: 
+        src: "resolv.j2"
+        dest:  /etc/resolvconf/resolv.conf.d/head
+    - shell: resolvconf -u
+ 
+- name: update all packages
+  apt: name="*" state=latest
+
+- name: sysupdate crons
+  cron:
+    name: "sysupdate cron"
+    user: "root"
+    minute: 0
+    hour: 0
+    weekday: 6
+    job: "/usr/local/bin/apt uppdate && /usr/local/bin/apt upgrade"
+  tags: cron

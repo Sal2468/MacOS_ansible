@@ -1,0 +1,10 @@
+
+# configures LINUX MINT desktop
+
+# Master
+- hosts: "mint"  
+  become_user: root
+  become: true
+  gather_facts: true
+  roles:
+    - mint

@@ -1,0 +1,23 @@
+
+- name: set dockutil path
+  set_fact: PATH="/usr/local/bin/"
+  tags: ['configure']
+
+- name: Remove all crap from Dock
+  shell: "sudo {{ PATH }}/dockutil --remove '{{ item }}'"
+  ignore_errors: true  
+  with_items: "{{ dockitems_to_remove  }}"
+  tags: ['configure']
+
+
+- name: Check if items in dock exist
+  shell: "sudo {{ PATH }}/dockutil --find '{{ item.name }}' || sudo {{ PATH }}/dockutil --add '{{ item.path }}'"
+  ignore_errors: true
+  with_items: "{{ dockitems_to_persist }}"
+  tags: ['configure']
+
+- name: Fix order
+  shell: "sudo {{ PATH }}/dockutil --move '{{ item.name }}' --position {{ item.pos }}"
+  ignore_errors: true
+  with_items: "{{ dockitems_to_persist }}"
+  tags: ['configure']

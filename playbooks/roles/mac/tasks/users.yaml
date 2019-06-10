@@ -1,0 +1,16 @@
+- name: Add users
+  shell: |
+    sudo dscl . -create /Users/{{ item.name }}
+    sudo dscl . -create /Users/{{ item.name }} UserShell /bin/bash
+    sudo dscl . -create /Users/{{ item.name }} RealName "{{ item.realname }}"
+    sudo dscl . -create /Users/{{ item.name }} NFSHomeDirectory /Users/{{ item.name }}
+    sudo dscl . -passwd /Users/{{ item.name }} {{ item.password }}
+    sudo dscl . -create /Users/{{ item.name }} UniqueID {{ item.uid }}
+    sudo dscl . -create /Users/{{ item.name }} PrimaryGroupID 20
+    # Create the home directory
+    sudo createhomedir -c > /dev/null
+    #sudo dscl . -append /Groups/admin GroupMembership username
+  with_items:
+    - { name: jsmith, realname: 'J Smith', password: pw1234, uid: 600 }
+  tags:
+     - users

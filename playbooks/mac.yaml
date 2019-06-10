@@ -1,0 +1,12 @@
+
+# Installs MAC software
+# Master
+- hosts: "mac"  
+  become_user: admin
+  become: true
+  become_method: sudo
+  gather_facts: true
+  vars_files:
+    - vars/mac_vars.yaml
+  roles:
+    - mac

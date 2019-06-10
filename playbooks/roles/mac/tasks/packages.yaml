@@ -1,0 +1,82 @@
+- name: thinlinc
+  block:
+    - stat: path="/Applications/ThinLinc Client.app"
+      register: thinlinc
+    - name: get ISO
+      get_url: url=https://repo/repository/files/thinlinc/tl-4.9.0_5775-client-osx.iso dest=/tmp mode='0775' validate_certs=false
+      when: not thinlinc.stat.exists
+    - name: mount ISO
+      command: sudo hdiutil mount /tmp/tl-4.9.0_5775-client-osx.iso
+      when: not thinlinc.stat.exists
+    - name: copy app
+      command: sudo cp -R /Volumes/ThinLinc\ Client/ThinLinc\ Client.app /Applications
+      when: not thinlinc.stat.exists
+    - name: unmount
+      command: sudo diskutil unmount /Volumes/ThinLinc\ Client
+      when: not thinlinc.stat.exists
+  tags: ['thinlinc', 'packages']
+
+
+- name: nomachine
+  block:
+    - stat: path="/Applications/NoMachine.app"
+      register: nomachine
+    - name: get DMG
+      get_url: url=https://repo/repository/files/nomachine/nomachine_6.7.6_6.dmg dest=/tmp mode='0775' validate_certs=false
+      when: not nomachine.stat.exists
+    - name: mount file
+      command: sudo hdiutil mount /tmp/nomachine_6.7.6_6.dmg
+      when: not nomachine.stat.exists
+    - name: install app
+      command: sudo installer -verbose -pkg /Volumes/NoMachine/NoMachine.pkg -target /
+      when: not nomachine.stat.exists
+    - name: unmount
+      command: sudo diskutil unmount /Volumes/NoMachine
+      when: not nomachine.stat.exists
+  tags: ['nomachine', 'packages']
+
+- name: avast
+  block:
+    - stat: path=/Applications/Avast.app
+      register: avast
+    - name: get file
+      get_url: url=https://repo/repository/files/avast/avast_security_online.dmg dest=/tmp mode='0775' validate_certs=false
+      when: not avast.stat.exists
+    - name: mount file
+      command: sudo hdiutil mount /tmp/avast_security_online.dmg
+      when: not avast.stat.exists
+    - name: install app
+      command: sudo installer -verbose -pkg /Volumes/Avast\ Security/Avast\ Security.pkg -target /
+      when: not avast.stat.exists
+    - name: unmount
+      command: sudo diskutil unmount /Volumes/Avast\ Security
+      when: not avast.stat.exists
+  tags: ['avast', 'packages']
+    
+## HOMEBREW
+- name: Check if Homebrew is already installed
+  stat: path=/usr/local/bin/brew
+  register: hb
+  tags: ['homebrew', 'packages']
+
+- name: Install Homebrew
+  script: homebrew.sh
+  when: not hb.stat.exists
+  tags: ['homebrew', 'packages']
+  
+
+- name: install Brew packages
+  homebrew: name={{ item }} state=installed
+  with_items: "{{ homebrew_installed_packages }}"
+  tags: ['packages']
+
+- name: install Taps
+  homebrew_tap: name="{{ item }}" state=present
+  with_items: "{{ homebrew_taps }}"
+  tags: ['packages']
+
+- name: install Cask packages
+  homebrew_cask: name={{ item }} state=installed
+  with_items: "{{ homebrew_cask_apps }}"
+  tags: ['packages']
+
